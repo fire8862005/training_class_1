@@ -21,9 +21,9 @@
 
                 <field name="name" />
                 <field name="manager_id"  required="1" />
-                <field name="description" />
+                <field name="description" invisible="1"/>
                 </group>
-                <field name="lesson_ids" />
+                <field name="lesson_ids"  readonly="1"/>
             </form>
         </field>
     </record>
@@ -40,6 +40,7 @@
                 <field name="sites" />
                 <field name="teacher_id" />
                 <field name="student_ids" />
+                <field name="state" />
             </tree>
         </field>
     </record>
@@ -50,24 +51,48 @@
         <field name='arch' type='xml'>
             <form string='课程'>
                 <group>
-
                 <field name="name" />
-                <field name="subject_id" />
-                <group>
-                    <group>
-                        <field name="start_date" />
-                    </group>
-                    <group>
-                        <field name="end_date" />
-                    </group>
-                 </group>
+                <slection name="state" />
+                <field name="subject_id" context ="{'form':'1'}"/>
+                <field name="start_date" />
+                <field name="end_date" />
                 <field name="sites" />
-                <field name="teacher_id" />
+                <field name="teacher_id" context ="{'teacher':'1'}" />
                 <field name="student_ids" />
+                <field name="state" widget="statusbar" />
+                <button name="start" states="new" string ="开课" type ="object"/>
+                <button name="end" states="start" string ="结束" type ="object"/>
                 </group>
             </form>
         </field>
     </record>
+
+   <record id='training_lesson_calendar' model ='ir.ui.view'>
+        <field name='name'>training.lesson.calendar</field>
+        <field name='model'>training.lesson</field>
+        <field name='arch' type='xml'>
+            <calendar string='课程' color ='subject_id' date_start ='start_date' date_stop ='end_date'>
+                <field name="name" />
+                <field name="sites" />
+            </calendar>
+        </field>
+    </record>
+
+   <record id='training_lesson_search' model ='ir.ui.view'>
+        <field name='name'>training.lesson.search</field>
+        <field name='model'>training.lesson</field>
+        <field name='arch' type='xml'>
+            <search string='课程' >
+                <field name="name" />
+                <field name="subject_id" />
+                <separator/>
+                <filter name="state" string ="开课状态" domain ="['state','=','new']"  />
+                <separator/>
+                <filter string="subject_id" domain ="[]" context ="{'group_by': 'subject_id' }" />
+            </search>
+        </field>
+    </record>
+
     <record id='training_res_partner_form' model='ir.ui.view'>
         <field name='name'>training.res.partner.from</field>
         <field name='model'>res.partner</field>
@@ -95,7 +120,8 @@
         <field name='name'>课程</field>
         <field name='res_model'>training.lesson</field>
         <field name='view_type'>form</field>
-        <field name='view_mode'>tree,form</field>
+        <field name='context'>"{'search_default_subject_id':'1'}"</field>
+        <field name='view_mode'>calendar,tree,form</field>
     </record>
 
     <record id='res_partner_action' model='ir.actions.act_window'>
